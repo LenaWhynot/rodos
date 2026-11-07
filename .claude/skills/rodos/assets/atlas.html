@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>@@TITLE@@ · Родос</title>
+<style>
+:root {
+  color-scheme: light;
+  --paper: #fcfbf9;
+  --ink: #171717;
+  --muted: #62656d;
+  --line: #dedede;
+  --blue: #2563eb;
+  --blue-pale: #eaf1ff;
+  --card-w: 248px;
+  --card-h: 152px;
+  --step-x: 284px;
+  --step-y: 222px;
+  --edge: 28px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); }
+button, a { font: inherit; }
+button:focus-visible, a:focus-visible, summary:focus-visible, .map-scroll:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+}
+main { width: min(100%, 1400px); margin: auto; padding: 44px 36px 64px; }
+.masthead { border-top: 1px solid var(--line); padding-top: 22px; }
+.eyebrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+.demo-label, .branch-label, .focus-label, .status { border-radius: 99px; }
+.demo-label { background: var(--blue-pale); padding: 5px 9px; letter-spacing: .04em; }
+h1 { margin: 12px 0 8px; font-size: clamp(34px, 5vw, 64px); line-height: 1.05; letter-spacing: -.055em; overflow-wrap: anywhere; }
+.counts, .outside > p, .map-note { color: var(--muted); }
+.counts { margin: 0 0 30px; line-height: 1.5; }
+.map-panel { border: 1px solid var(--line); border-radius: 20px; padding-block: 20px 0; overflow: hidden; }
+.map-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-inline: 24px;
+  min-height: 28px;
+}
+.legend, .branch-labels { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; gap: 7px; align-items: center; }
+.legend span::before { content: ""; width: 20px; border-top: 2px solid var(--blue); }
+.legend .oral::before { border-top: 2px dashed #7a8596; }
+.branch-label { color: #33507f; background: #eff2f8; font-size: 12px; padding: 5px 9px; }
+.map-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
+.map-scroll:focus-visible { outline-offset: -5px; }
+.map-canvas {
+  --vertical-edge: 28px;
+  position: relative;
+  width: calc(var(--columns) * var(--step-x) + 2 * var(--edge));
+  height: calc((var(--rows) - 1) * var(--step-y) + var(--card-h) + 2 * var(--vertical-edge));
+  margin-inline: auto;
+}
+.map-lines { position: absolute; width: 100%; height: 100%; inset: 0; pointer-events: none; }
+.map-lines path { fill: none; stroke: var(--blue); stroke-width: 2; stroke-linejoin: round; }
+.map-lines .family { stroke: #7a8596; stroke-dasharray: 4 5; }
+.person-card {
+  position: relative;
+  width: var(--card-w);
+  min-height: var(--card-h);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px #191c2410;
+}
+.person-card:hover { border-color: var(--blue); }
+.map-canvas .person-card {
+  position: absolute;
+  top: calc(var(--vertical-edge) + var(--row) * var(--step-y));
+  left: calc(var(--edge) + var(--column) * var(--step-x));
+  transform: translateX(-50%);
+  height: var(--card-h);
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--blue-pale);
+  color: #234d9b;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.person-name {
+  font-weight: 650;
+  font-size: 18px;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.person-years { color: var(--muted); font-size: 14px; }
+.focus-label { font-size: 11px; color: #234d9b; background: var(--blue-pale); padding: 3px 8px; }
+.person-card:has(.focus-label) { border-color: #98b5f4; }
+.map-note { font-size: 12px; padding: 0 24px; margin: 0 0 18px; }
+.map-note[hidden] { display: none; }
+.outside { margin-top: 32px; }
+.outside h2 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
+.outside > p { margin: 6px 0 16px; }
+.outside-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.outside-grid .person-card { background: #fff8e9; box-shadow: none; }
+dialog {
+  width: min(880px, calc(100% - 32px));
+  max-height: min(86vh, 920px);
+  max-height: min(86dvh, 920px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 30px 85px #1018282b;
+}
+dialog::backdrop { background: #18233763; }
+.dialog-bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: #fff;
+  padding: 12px 16px 4px;
+  z-index: 1;
+}
+.close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.bio { padding: 2px 30px 36px; }
+.bio article { max-width: 700px; margin-inline: auto; }
+.bio-header { display: flex; align-items: center; gap: 16px; }
+.bio-header .avatar { width: 64px; height: 64px; font-size: 20px; flex: 0 0 64px; }
+.bio-header h2 { margin: 0; font-size: clamp(26px, 5vw, 38px); line-height: 1.05; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.bio-header p { margin: 5px 0 0; color: var(--muted); }
+.bio section { margin-top: 24px; }
+.bio h3 { margin: 0 0 10px; font-size: 19px; }
+.summary, .facts, .source { line-height: 1.55; overflow-wrap: anywhere; }
+.summary { margin-top: 18px; color: var(--muted); }
+.facts { list-style: none; padding: 0; margin: 0; }
+.facts li { border-top: 1px solid var(--line); padding: 9px 0; }
+.facts p, .source p { margin: 4px 0 0; }
+.status { display: inline-block; margin-left: 8px; padding: 2px 7px; font-size: 11px; background: #f0f1f4; color: #475160; }
+.status.documented { background: var(--blue-pale); color: #234d9b; }
+.status.hypothesis, .status.disputed { background: #fff1d2; color: #784606; }
+.source { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; margin-bottom: 8px; }
+.source summary { font-weight: 650; cursor: pointer; }
+.source a { color: #174db9; }
+.source blockquote { border-left: 2px solid var(--blue); padding-left: 10px; margin: 10px 0; }
+@media (max-width: 1199px) {
+  :root { --card-w: 192px; --card-h: 136px; --step-x: 220px; --step-y: 188px; }
+}
+@media (max-width: 640px) {
+  :root { --card-w: 142px; --card-h: 126px; --step-x: 158px; --step-y: 172px; --edge: 16px; }
+  main { padding: 20px 14px 38px; }
+  .masthead { padding-top: 16px; }
+  .counts { font-size: 14px; margin-bottom: 20px; }
+  .map-panel { padding-top: 14px; }
+  .map-meta, .map-note { padding-inline: 14px; }
+  .map-meta { gap: 10px; }
+  .map-canvas { --vertical-edge: 22px; }
+  .person-card { gap: 4px; padding-inline: 8px; }
+  .person-name { font-size: 14px; }
+  .person-years { font-size: 12px; }
+  .person-card .avatar { width: 36px; height: 36px; }
+  .bio { padding-inline: 18px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="masthead">
+    <div class="eyebrow"><span>Родос · Семейный атлас</span>@@DEMO@@</div>
+    <h1>@@TITLE@@</h1>
+    <p class="counts">@@COUNTS@@</p>
+  </header>
+  <section class="map-panel" aria-label="Карта семьи">
+    <div class="map-meta">
+      <div class="branch-labels">@@BRANCHES@@</div>
+      <div class="legend" aria-label="Обозначения связей"><span>В документе</span><span class="oral">Со слов семьи</span></div>
+    </div>
+    <div class="map-scroll" tabindex="0" aria-label="Дерево. Клавиши со стрелками прокручивают карту, Tab выбирает карточку.">
+      <div class="map-canvas" style="--columns:@@COLUMNS@@;--rows:@@ROWS@@">
+        <svg class="map-lines" aria-hidden="true">@@LINES@@</svg>
+        @@CARDS@@
+      </div>
+    </div>
+    <p class="map-note" hidden>Листайте дерево влево и вправо. Нажмите на карточку, чтобы прочитать историю.</p>
+  </section>
+  @@OUTSIDE@@
+</main>
+<dialog aria-labelledby="bio-title">
+  <div class="dialog-bar"><button class="close" type="button" aria-label="Закрыть карточку" autofocus>×</button></div>
+  <div class="bio"></div>
+</dialog>
+@@BIOGRAPHIES@@
+<script>
+const map = document.querySelector(".map-scroll");
+const canvas = document.querySelector(".map-canvas");
+const note = document.querySelector(".map-note");
+const cards = new Map([...canvas.querySelectorAll(".person-card")].map(card => [card.dataset.person, card]));
+const paths = [...canvas.querySelectorAll(".map-lines path")];
+
+function drawLines() {
+  const bounds = canvas.getBoundingClientRect();
+  const positions = new Map([...cards].map(([id, card]) => {
+    const { x, y, width, height } = card.getBoundingClientRect();
+    return [id, { x: x - bounds.x + width / 2, top: y - bounds.y, bottom: y - bounds.y + height }];
+  }));
+  for (const path of paths) {
+    const parent = positions.get(path.dataset.parent);
+    const child = positions.get(path.dataset.child);
+    const gap = child.top - parent.bottom;
+    const junction = child.top - (parseFloat(getComputedStyle(canvas).getPropertyValue("--step-y")) -
+      parseFloat(getComputedStyle(canvas).getPropertyValue("--card-h"))) / 2;
+    const gutter = parent.x < bounds.width / 2 ? 12 : bounds.width - 12;
+    const descent = gap > 110
+      ? ` V ${parent.bottom + 14} H ${gutter} V ${junction}`
+      : ` V ${junction}`;
+    path.setAttribute("d", `M ${parent.x} ${parent.bottom}${descent} H ${child.x} V ${child.top}`);
+  }
+  note.hidden = map.scrollWidth <= map.clientWidth;
+}
+
+new ResizeObserver(drawLines).observe(canvas);
+new ResizeObserver(drawLines).observe(map);
+drawLines();
+map.scrollLeft = (map.scrollWidth - map.clientWidth) / 2;
+
+const dialog = document.querySelector("dialog");
+const biography = dialog.querySelector(".bio");
+document.querySelectorAll(".person-card").forEach(card => {
+  card.addEventListener("click", () => {
+    const content = document.getElementById(`bio-${card.dataset.person}`).content.cloneNode(true);
+    biography.replaceChildren(content);
+    dialog.scrollTop = 0;
+    dialog.showModal();
+  });
+});
+dialog.querySelector(".close").addEventListener("click", () => dialog.close());
+dialog.addEventListener("click", event => {
+  if (event.target !== dialog) return;
+  const { left, right, top, bottom } = dialog.getBoundingClientRect();
+  if (event.clientX < left || event.clientX > right || event.clientY < top || event.clientY > bottom) dialog.close();
+});
+</script>
+</body>
+</html>

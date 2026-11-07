@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "title": "Семья Заречных",
+  "root_id": "nina",
+  "is_demo": true,
+  "people": [
+    {
+      "id": "nina",
+      "name": "Нина Заречная",
+      "life_years": "1997",
+      "summary": "Нина начинает семейное дерево с истории о бабушкином доме у реки.",
+      "facts": [
+        {"title": "Первое воспоминание", "text": "Бабушка Анна жила в посёлке Липовый Брод. По выходным у неё собирались родные.", "status": "family", "source_ids": ["story"]}
+      ],
+      "questions": ["Что родные помнят о прадедушках и прабабушках?"]
+    },
+    {
+      "id": "kirill",
+      "name": "Кирилл Заречный",
+      "life_years": "1968",
+      "summary": "Папа Нины. Назвал имена своих родителей и рассказал, что они жили рядом со станцией."
+    },
+    {
+      "id": "vera",
+      "name": "Вера Листова",
+      "life_years": "1970",
+      "summary": "Мама Нины. В семейном рассказе сохранилось имя её матери. Учебная запись о рождении называет обоих родителей.",
+      "facts": [
+        {"title": "Место рождения", "text": "Посёлок Липовый Брод.", "status": "documented", "source_ids": ["birth"]},
+        {"title": "Воспоминание о доме", "text": "Вера рассказывала Нине, что в детстве часто гостила у бабушкиного дома возле реки.", "status": "family", "source_ids": ["story"]}
+      ],
+      "questions": ["В каком году семья переехала ближе к станции?"]
+    },
+    {"id": "mikhail", "name": "Михаил Заречный", "life_years": "1938–2007"},
+    {"id": "elena", "name": "Елена Заречная", "life_years": "1942–2017"},
+    {
+      "id": "anna",
+      "name": "Анна Листова",
+      "life_years": "1946–2013",
+      "summary": "Бабушка Нины по маминой стороне. С её истории начинается этот атлас.",
+      "facts": [
+        {"title": "Дом у реки", "text": "Анна принимала семью по выходным в Липовом Броде.", "status": "family", "source_ids": ["story"]}
+      ],
+      "questions": ["Как называлась улица у реки?"]
+    },
+    {
+      "id": "pavel",
+      "name": "Павел Листов",
+      "summary": "Отца Веры удалось выделить в отдельную карточку по учебной записи о рождении.",
+      "facts": [
+        {"title": "Отец Веры", "text": "В записи о рождении Веры Павел Листов указан в графе «отец».", "status": "documented", "source_ids": ["birth"]}
+      ],
+      "questions": ["Где и когда родился Павел?"]
+    },
+    {
+      "id": "pavel-candidate",
+      "name": "Павел Листов",
+      "life_years": "около 1945",
+      "summary": "Тёзка из учебной выписки по соседнему посёлку. Связь с Верой пока не установлена.",
+      "facts": [
+        {"title": "Совпадение имени", "text": "Имя совпало. Посёлок и примерный год относятся к другой записи.", "status": "hypothesis", "source_ids": ["index"]}
+      ],
+      "questions": ["Есть ли отчество, адрес или свидетель, по которому можно различить двух Павлов?"]
+    }
+  ],
+  "relationships": [
+    {"id": "r-kirill-nina", "kind": "parent_of", "parent_id": "kirill", "child_id": "nina", "role": "father", "status": "family", "source_ids": ["story"]},
+    {"id": "r-vera-nina", "kind": "parent_of", "parent_id": "vera", "child_id": "nina", "role": "mother", "status": "family", "source_ids": ["story"]},
+    {"id": "r-mikhail-kirill", "kind": "parent_of", "parent_id": "mikhail", "child_id": "kirill", "status": "family", "source_ids": ["story"]},
+    {"id": "r-elena-kirill", "kind": "parent_of", "parent_id": "elena", "child_id": "kirill", "status": "family", "source_ids": ["story"]},
+    {"id": "r-pavel-vera", "kind": "parent_of", "parent_id": "pavel", "child_id": "vera", "role": "father", "status": "documented", "source_ids": ["birth"]},
+    {"id": "r-anna-vera", "kind": "parent_of", "parent_id": "anna", "child_id": "vera", "role": "mother", "status": "documented", "source_ids": ["birth", "story"]}
+  ],
+  "sources": [
+    {
+      "id": "story",
+      "title": "Семейный разговор",
+      "kind": "Вымышленное устное свидетельство",
+      "excerpt": "Анна жила у реки в Липовом Броде. Вера часто бывала там ребёнком."
+    },
+    {
+      "id": "birth",
+      "title": "Запись о рождении Веры",
+      "kind": "Учебная запись, вымышленный первичный источник",
+      "locator": "Книга № 2, запись № 17, лист 11",
+      "excerpt": "Вера Листова. Место рождения: Липовый Брод. Отец: Павел Листов. Мать: Анна Листова."
+    },
+    {
+      "id": "index",
+      "title": "Указатель по соседнему посёлку",
+      "kind": "Вымышленный указатель",
+      "excerpt": "Павел Листов, около 1945 года, Тихая Речка. Родители в указателе не названы."
+    }
+  ]
+}

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Семья Заречных · Родос</title>
+<style>
+:root {
+  color-scheme: light;
+  --paper: #fcfbf9;
+  --ink: #171717;
+  --muted: #62656d;
+  --line: #dedede;
+  --blue: #2563eb;
+  --blue-pale: #eaf1ff;
+  --card-w: 248px;
+  --card-h: 152px;
+  --step-x: 284px;
+  --step-y: 222px;
+  --edge: 28px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); }
+button, a { font: inherit; }
+button:focus-visible, a:focus-visible, summary:focus-visible, .map-scroll:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 4px;
+}
+main { width: min(100%, 1400px); margin: auto; padding: 44px 36px 64px; }
+.masthead { border-top: 1px solid var(--line); padding-top: 22px; }
+.eyebrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+.demo-label, .branch-label, .focus-label, .status { border-radius: 99px; }
+.demo-label { background: var(--blue-pale); padding: 5px 9px; letter-spacing: .04em; }
+h1 { margin: 12px 0 8px; font-size: clamp(34px, 5vw, 64px); line-height: 1.05; letter-spacing: -.055em; overflow-wrap: anywhere; }
+.counts, .outside > p, .map-note { color: var(--muted); }
+.counts { margin: 0 0 30px; line-height: 1.5; }
+.map-panel { border: 1px solid var(--line); border-radius: 20px; padding-block: 20px 0; overflow: hidden; }
+.map-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-inline: 24px;
+  min-height: 28px;
+}
+.legend, .branch-labels { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; gap: 7px; align-items: center; }
+.legend span::before { content: ""; width: 20px; border-top: 2px solid var(--blue); }
+.legend .oral::before { border-top: 2px dashed #7a8596; }
+.branch-label { color: #33507f; background: #eff2f8; font-size: 12px; padding: 5px 9px; }
+.map-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
+.map-scroll:focus-visible { outline-offset: -5px; }
+.map-canvas {
+  --vertical-edge: 28px;
+  position: relative;
+  width: calc(var(--columns) * var(--step-x) + 2 * var(--edge));
+  height: calc((var(--rows) - 1) * var(--step-y) + var(--card-h) + 2 * var(--vertical-edge));
+  margin-inline: auto;
+}
+.map-lines { position: absolute; width: 100%; height: 100%; inset: 0; pointer-events: none; }
+.map-lines path { fill: none; stroke: var(--blue); stroke-width: 2; stroke-linejoin: round; }
+.map-lines .family { stroke: #7a8596; stroke-dasharray: 4 5; }
+.person-card {
+  position: relative;
+  width: var(--card-w);
+  min-height: var(--card-h);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px #191c2410;
+}
+.person-card:hover { border-color: var(--blue); }
+.map-canvas .person-card {
+  position: absolute;
+  top: calc(var(--vertical-edge) + var(--row) * var(--step-y));
+  left: calc(var(--edge) + var(--column) * var(--step-x));
+  transform: translateX(-50%);
+  height: var(--card-h);
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--blue-pale);
+  color: #234d9b;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.person-name {
+  font-weight: 650;
+  font-size: 18px;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.person-years { color: var(--muted); font-size: 14px; }
+.focus-label { font-size: 11px; color: #234d9b; background: var(--blue-pale); padding: 3px 8px; }
+.person-card:has(.focus-label) { border-color: #98b5f4; }
+.map-note { font-size: 12px; padding: 0 24px; margin: 0 0 18px; }
+.map-note[hidden] { display: none; }
+.outside { margin-top: 32px; }
+.outside h2 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
+.outside > p { margin: 6px 0 16px; }
+.outside-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.outside-grid .person-card { background: #fff8e9; box-shadow: none; }
+dialog {
+  width: min(880px, calc(100% - 32px));
+  max-height: min(86vh, 920px);
+  max-height: min(86dvh, 920px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 30px 85px #1018282b;
+}
+dialog::backdrop { background: #18233763; }
+.dialog-bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: #fff;
+  padding: 12px 16px 4px;
+  z-index: 1;
+}
+.close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.bio { padding: 2px 30px 36px; }
+.bio article { max-width: 700px; margin-inline: auto; }
+.bio-header { display: flex; align-items: center; gap: 16px; }
+.bio-header .avatar { width: 64px; height: 64px; font-size: 20px; flex: 0 0 64px; }
+.bio-header h2 { margin: 0; font-size: clamp(26px, 5vw, 38px); line-height: 1.05; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.bio-header p { margin: 5px 0 0; color: var(--muted); }
+.bio section { margin-top: 24px; }
+.bio h3 { margin: 0 0 10px; font-size: 19px; }
+.summary, .facts, .source { line-height: 1.55; overflow-wrap: anywhere; }
+.summary { margin-top: 18px; color: var(--muted); }
+.facts { list-style: none; padding: 0; margin: 0; }
+.facts li { border-top: 1px solid var(--line); padding: 9px 0; }
+.facts p, .source p { margin: 4px 0 0; }
+.status { display: inline-block; margin-left: 8px; padding: 2px 7px; font-size: 11px; background: #f0f1f4; color: #475160; }
+.status.documented { background: var(--blue-pale); color: #234d9b; }
+.status.hypothesis, .status.disputed { background: #fff1d2; color: #784606; }
+.source { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; margin-bottom: 8px; }
+.source summary { font-weight: 650; cursor: pointer; }
+.source a { color: #174db9; }
+.source blockquote { border-left: 2px solid var(--blue); padding-left: 10px; margin: 10px 0; }
+@media (max-width: 1199px) {
+  :root { --card-w: 192px; --card-h: 136px; --step-x: 220px; --step-y: 188px; }
+}
+@media (max-width: 640px) {
+  :root { --card-w: 142px; --card-h: 126px; --step-x: 158px; --step-y: 172px; --edge: 16px; }
+  main { padding: 20px 14px 38px; }
+  .masthead { padding-top: 16px; }
+  .counts { font-size: 14px; margin-bottom: 20px; }
+  .map-panel { padding-top: 14px; }
+  .map-meta, .map-note { padding-inline: 14px; }
+  .map-meta { gap: 10px; }
+  .map-canvas { --vertical-edge: 22px; }
+  .person-card { gap: 4px; padding-inline: 8px; }
+  .person-name { font-size: 14px; }
+  .person-years { font-size: 12px; }
+  .person-card .avatar { width: 36px; height: 36px; }
+  .bio { padding-inline: 18px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="masthead">
+    <div class="eyebrow"><span>Родос · Семейный атлас</span><span class="demo-label">Вымышленная семья</span></div>
+    <h1>Семья Заречных</h1>
+    <p class="counts">Людей в атласе · 8　 Связей на карте · 6</p>
+  </header>
+  <section class="map-panel" aria-label="Карта семьи">
+    <div class="map-meta">
+      <div class="branch-labels"><span class="branch-label">Папина сторона</span><span class="branch-label">Мамина сторона</span></div>
+      <div class="legend" aria-label="Обозначения связей"><span>В документе</span><span class="oral">Со слов семьи</span></div>
+    </div>
+    <div class="map-scroll" tabindex="0" aria-label="Дерево. Клавиши со стрелками прокручивают карту, Tab выбирает карточку.">
+      <div class="map-canvas" style="--columns:4;--rows:3">
+        <svg class="map-lines" aria-hidden="true"><path data-relationship="r-kirill-nina" data-parent="kirill" data-child="nina" class="family"/><path data-relationship="r-vera-nina" data-parent="vera" data-child="nina" class="family"/><path data-relationship="r-mikhail-kirill" data-parent="mikhail" data-child="kirill" class="family"/><path data-relationship="r-elena-kirill" data-parent="elena" data-child="kirill" class="family"/><path data-relationship="r-pavel-vera" data-parent="pavel" data-child="vera" class="documented"/><path data-relationship="r-anna-vera" data-parent="anna" data-child="vera" class="documented"/></svg>
+        <button type="button" class="person-card" data-person="nina" style="--column:2;--row:2"><span class="avatar" aria-hidden="true">НЗ</span><span class="person-name">Нина Заречная</span><span class="person-years">1997</span><span class="focus-label">Точка отсчёта</span></button><button type="button" class="person-card" data-person="kirill" style="--column:1;--row:1"><span class="avatar" aria-hidden="true">КЗ</span><span class="person-name">Кирилл Заречный</span><span class="person-years">1968</span></button><button type="button" class="person-card" data-person="vera" style="--column:3;--row:1"><span class="avatar" aria-hidden="true">ВЛ</span><span class="person-name">Вера Листова</span><span class="person-years">1970</span></button><button type="button" class="person-card" data-person="mikhail" style="--column:0.5;--row:0"><span class="avatar" aria-hidden="true">МЗ</span><span class="person-name">Михаил Заречный</span><span class="person-years">1938–2007</span></button><button type="button" class="person-card" data-person="elena" style="--column:1.5;--row:0"><span class="avatar" aria-hidden="true">ЕЗ</span><span class="person-name">Елена Заречная</span><span class="person-years">1942–2017</span></button><button type="button" class="person-card" data-person="anna" style="--column:2.5;--row:0"><span class="avatar" aria-hidden="true">АЛ</span><span class="person-name">Анна Листова</span><span class="person-years">1946–2013</span></button><button type="button" class="person-card" data-person="pavel" style="--column:3.5;--row:0"><span class="avatar" aria-hidden="true">ПЛ</span><span class="person-name">Павел Листов</span><span class="person-years">Годы уточняются</span></button>
+      </div>
+    </div>
+    <p class="map-note" hidden>Листайте дерево влево и вправо. Нажмите на карточку, чтобы прочитать историю.</p>
+  </section>
+  <section class="outside"><h2>Отдельные карточки</h2><p>Их связь с основной веткой ещё предстоит установить.</p><div class="outside-grid"><button type="button" class="person-card" data-person="pavel-candidate"><span class="avatar" aria-hidden="true">ПЛ</span><span class="person-name">Павел Листов</span><span class="person-years">около 1945</span></button></div></section>
+</main>
+<dialog aria-labelledby="bio-title">
+  <div class="dialog-bar"><button class="close" type="button" aria-label="Закрыть карточку" autofocus>×</button></div>
+  <div class="bio"></div>
+</dialog>
+<template id="bio-nina"><article><header class="bio-header"><span class="avatar" aria-hidden="true">НЗ</span><div><h2 id="bio-title">Нина Заречная</h2><p>1997</p></div></header><p class="summary">Нина начинает семейное дерево с истории о бабушкином доме у реки.</p><section><h3>Что известно</h3><ul class="facts"><li><strong>Первое воспоминание</strong><span class="status family">Со слов семьи</span><p>Бабушка Анна жила в посёлке Липовый Брод. По выходным у неё собирались родные.</p></li></ul></section><section><h3>Родственные связи</h3><ul class="facts"><li><strong>Родитель · Кирилл Заречный</strong><span class="status family">Со слов семьи</span></li><li><strong>Родитель · Вера Листова</strong><span class="status family">Со слов семьи</span></li></ul></section><section><h3>Открытые вопросы</h3><ul class="facts"><li>Что родные помнят о прадедушках и прабабушках?</li></ul></section><section><h3>Источники</h3><details class="source"><summary>Семейный разговор</summary><p>Вымышленное устное свидетельство</p><blockquote>Анна жила у реки в Липовом Броде. Вера часто бывала там ребёнком.</blockquote></details></section></article></template><template id="bio-kirill"><article><header class="bio-header"><span class="avatar" aria-hidden="true">КЗ</span><div><h2 id="bio-title">Кирилл Заречный</h2><p>1968</p></div></header><p class="summary">Папа Нины. Назвал имена своих родителей и рассказал, что они жили рядом со станцией.</p><section><h3>Родственные связи</h3><ul class="facts"><li><strong>Ребёнок · Нина Заречная</strong><span class="status family">Со слов семьи</span></li><li><strong>Родитель · Михаил Заречный</strong><span class="status family">Со слов семьи</span></li><li><strong>Родитель · Елена Заречная</strong><span class="status family">Со слов семьи</span></li></ul></section><section><h3>Источники</h3><details class="source"><summary>Семейный разговор</summary><p>Вымышленное устное свидетельство</p><blockquote>Анна жила у реки в Липовом Броде. Вера часто бывала там ребёнком.</blockquote></details></section></article></template><template id="bio-vera"><article><header class="bio-header"><span class="avatar" aria-hidden="true">ВЛ</span><div><h2 id="bio-title">Вера Листова</h2><p>1970</p></div></header><p class="summary">Мама Нины. В семейном рассказе сохранилось имя её матери. Учебная запись о рождении называет обоих родителей.</p><section><h3>Что известно</h3><ul class="facts"><li><strong>Место рождения</strong><span class="status documented">В документе</span><p>Посёлок Липовый Брод.</p></li><li><strong>Воспоминание о доме</strong><span class="status family">Со слов семьи</span><p>Вера рассказывала Нине, что в детстве часто гостила у бабушкиного дома возле реки.</p></li></ul></section><section><h3>Родственные связи</h3><ul class="facts"><li><strong>Ребёнок · Нина Заречная</strong><span class="status family">Со слов семьи</span></li><li><strong>Родитель · Павел Листов</strong><span class="status documented">В документе</span></li><li><strong>Родитель · Анна Листова</strong><span class="status documented">В документе</span></li></ul></section><section><h3>Открытые вопросы</h3><ul class="facts"><li>В каком году семья переехала ближе к станции?</li></ul></section><section><h3>Источники</h3><details class="source"><summary>Запись о рождении Веры</summary><p>Учебная запись, вымышленный первичный источник · Книга № 2, запись № 17, лист 11</p><blockquote>Вера Листова. Место рождения: Липовый Брод. Отец: Павел Листов. Мать: Анна Листова.</blockquote></details><details class="source"><summary>Семейный разговор</summary><p>Вымышленное устное свидетельство</p><blockquote>Анна жила у реки в Липовом Броде. Вера часто бывала там ребёнком.</blockquote></details></section></article></template><template id="bio-mikhail"><article><header class="bio-header"><span class="avatar" aria-hidden="true">МЗ</span><div><h2 id="bio-title">Михаил Заречный</h2><p>1938–2007</p></div></header><section><h3>Родственные связи</h3><ul class="facts"><li><strong>Ребёнок · Кирилл Заречный</strong><span class="status family">Со слов семьи</span></li></ul></section><section><h3>Источники</h3><details class="source"><summary>Семейный разговор</summary><p>Вымышленное устное свидетельство</p><blockquote>Анна жила у реки в Липовом Броде. Вера часто бывала там ребёнком.</blockquote></details></section></article></template><template id="bio-elena"><article><header class="bio-header"><span class="avatar" aria-hidden="true">ЕЗ</span><div><h2 id="bio-title">Елена Заречная</h2><p>1942–2017</p></div></header><section><h3>Родственные связи</h3><ul class="facts"><li><strong>Ребёнок · Кирилл Заречный</strong><span class="status family">Со слов семьи</span></li></ul></section><section><h3>Источники</h3><details class="source"><summary>Семейный разговор</summary><p>Вымышленное устное свидетельство</p><blockquote>Анна жила у реки в Липовом Броде. Вера часто бывала там ребёнком.</blockquote></details></section></article></template><template id="bio-anna"><article><header class="bio-header"><span class="avatar" aria-hidden="true">АЛ</span><div><h2 id="bio-title">Анна Листова</h2><p>1946–2013</p></div></header><p class="summary">Бабушка Нины по маминой стороне. С её истории начинается этот атлас.</p><section><h3>Что известно</h3><ul class="facts"><li><strong>Дом у реки</strong><span class="status family">Со слов семьи</span><p>Анна принимала семью по выходным в Липовом Броде.</p></li></ul></section><section><h3>Родственные связи</h3><ul class="facts"><li><strong>Ребёнок · Вера Листова</strong><span class="status documented">В документе</span></li></ul></section><section><h3>Открытые вопросы</h3><ul class="facts"><li>Как называлась улица у реки?</li></ul></section><section><h3>Источники</h3><details class="source"><summary>Семейный разговор</summary><p>Вымышленное устное свидетельство</p><blockquote>Анна жила у реки в Липовом Броде. Вера часто бывала там ребёнком.</blockquote></details><details class="source"><summary>Запись о рождении Веры</summary><p>Учебная запись, вымышленный первичный источник · Книга № 2, запись № 17, лист 11</p><blockquote>Вера Листова. Место рождения: Липовый Брод. Отец: Павел Листов. Мать: Анна Листова.</blockquote></details></section></article></template><template id="bio-pavel"><article><header class="bio-header"><span class="avatar" aria-hidden="true">ПЛ</span><div><h2 id="bio-title">Павел Листов</h2><p>Годы уточняются</p></div></header><p class="summary">Отца Веры удалось выделить в отдельную карточку по учебной записи о рождении.</p><section><h3>Что известно</h3><ul class="facts"><li><strong>Отец Веры</strong><span class="status documented">В документе</span><p>В записи о рождении Веры Павел Листов указан в графе «отец».</p></li></ul></section><section><h3>Родственные связи</h3><ul class="facts"><li><strong>Ребёнок · Вера Листова</strong><span class="status documented">В документе</span></li></ul></section><section><h3>Открытые вопросы</h3><ul class="facts"><li>Где и когда родился Павел?</li></ul></section><section><h3>Источники</h3><details class="source"><summary>Запись о рождении Веры</summary><p>Учебная запись, вымышленный первичный источник · Книга № 2, запись № 17, лист 11</p><blockquote>Вера Листова. Место рождения: Липовый Брод. Отец: Павел Листов. Мать: Анна Листова.</blockquote></details></section></article></template><template id="bio-pavel-candidate"><article><header class="bio-header"><span class="avatar" aria-hidden="true">ПЛ</span><div><h2 id="bio-title">Павел Листов</h2><p>около 1945</p></div></header><p class="summary">Тёзка из учебной выписки по соседнему посёлку. Связь с Верой пока не установлена.</p><section><h3>Что известно</h3><ul class="facts"><li><strong>Совпадение имени</strong><span class="status hypothesis">Версия</span><p>Имя совпало. Посёлок и примерный год относятся к другой записи.</p></li></ul></section><section><h3>Открытые вопросы</h3><ul class="facts"><li>Есть ли отчество, адрес или свидетель, по которому можно различить двух Павлов?</li></ul></section><section><h3>Источники</h3><details class="source"><summary>Указатель по соседнему посёлку</summary><p>Вымышленный указатель</p><blockquote>Павел Листов, около 1945 года, Тихая Речка. Родители в указателе не названы.</blockquote></details></section></article></template>
+<script>
+const map = document.querySelector(".map-scroll");
+const canvas = document.querySelector(".map-canvas");
+const note = document.querySelector(".map-note");
+const cards = new Map([...canvas.querySelectorAll(".person-card")].map(card => [card.dataset.person, card]));
+const paths = [...canvas.querySelectorAll(".map-lines path")];
+
+function drawLines() {
+  const bounds = canvas.getBoundingClientRect();
+  const positions = new Map([...cards].map(([id, card]) => {
+    const { x, y, width, height } = card.getBoundingClientRect();
+    return [id, { x: x - bounds.x + width / 2, top: y - bounds.y, bottom: y - bounds.y + height }];
+  }));
+  for (const path of paths) {
+    const parent = positions.get(path.dataset.parent);
+    const child = positions.get(path.dataset.child);
+    const gap = child.top - parent.bottom;
+    const junction = child.top - (parseFloat(getComputedStyle(canvas).getPropertyValue("--step-y")) -
+      parseFloat(getComputedStyle(canvas).getPropertyValue("--card-h"))) / 2;
+    const gutter = parent.x < bounds.width / 2 ? 12 : bounds.width - 12;
+    const descent = gap > 110
+      ? ` V ${parent.bottom + 14} H ${gutter} V ${junction}`
+      : ` V ${junction}`;
+    path.setAttribute("d", `M ${parent.x} ${parent.bottom}${descent} H ${child.x} V ${child.top}`);
+  }
+  note.hidden = map.scrollWidth <= map.clientWidth;
+}
+
+new ResizeObserver(drawLines).observe(canvas);
+new ResizeObserver(drawLines).observe(map);
+drawLines();
+map.scrollLeft = (map.scrollWidth - map.clientWidth) / 2;
+
+const dialog = document.querySelector("dialog");
+const biography = dialog.querySelector(".bio");
+document.querySelectorAll(".person-card").forEach(card => {
+  card.addEventListener("click", () => {
+    const content = document.getElementById(`bio-${card.dataset.person}`).content.cloneNode(true);
+    biography.replaceChildren(content);
+    dialog.scrollTop = 0;
+    dialog.showModal();
+  });
+});
+dialog.querySelector(".close").addEventListener("click", () => dialog.close());
+dialog.addEventListener("click", event => {
+  if (event.target !== dialog) return;
+  const { left, right, top, bottom } = dialog.getBoundingClientRect();
+  if (event.clientX < left || event.clientX > right || event.clientY < top || event.clientY > bottom) dialog.close();
+});
+</script>
+</body>
+</html>
