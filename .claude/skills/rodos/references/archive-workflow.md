@@ -24,6 +24,8 @@
 
 ## Справочники по задаче
 
+- Поиск людей, чужих деревьев и источников по месту — [Familio](familio-search.md): точное совпадение фамилии, неполные карточки, переход к скану и учёт происхождения индекса.
+
 - Примеры официальных точек входа — [FamilySearch Catalog](https://www.familysearch.org/en/search/catalog), где можно начать с места и вида документа, и [электронный ресурс ЦДІАЛ](https://archium.tsdial.archives.gov.ua/) для фондов этого архива. Выбирай каталог по нужной юрисдикции. У FamilySearch [ограничения просмотра изображений](https://articles.familysearch.org/hc/en-us/articles/41693898891931-What-are-the-image-restrictions-in-Historical-Records) зависят от конкретной коллекции.
 - География, язык и календарь — [региональный путеводитель](../vendor/ex-ussr-kinship-research/references/ex-ussr-locale-guide.md) и [первичные точки входа](../vendor/ex-ussr-kinship-research/references/seed-sources.md).
 - Выбор документа — [стратегия источников](../vendor/ex-ussr-kinship-research/references/source-strategy.md) и [полевые наблюдения](../vendor/ex-ussr-kinship-research/references/field-lessons.md).
